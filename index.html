@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loop Presentation</title>
+    <link
+      rel="shortcut icon"
+      href="https://loop-lime.vercel.app/icons/Loop-logo.png"
+      type="image/x-icon"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      /* Global Reset and Typography */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: #f5f7fa;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      /* ===================================== */
+      /* Desktop UI Layout */
+      /* ===================================== */
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 10px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 10px;
+        padding: 10px;
+        color: #0a4d8c;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        position: sticky;
+        top: 0;
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      .main-content {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .upload-section,
+      .presentation-section {
+        flex: 1;
+        min-width: 300px;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #0a4d8c;
+        border-bottom: 2px solid #e4edf5;
+        padding-bottom: 10px;
+      }
+
+      /* Upload Area & Buttons */
+      .upload-area {
+        border: 2px dashed #64b5f6;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+
+      .upload-area:hover {
+        background-color: #f0f8ff;
+        border-color: #1976d2;
+      }
+
+      .upload-icon {
+        font-size: 48px;
+        color: #64b5f6;
+        margin-bottom: 10px;
+      }
+
+      .upload-text {
+        margin-bottom: 15px;
+      }
+
+      .btn {
+        background: #1976d2;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn:hover {
+        background: #0a4d8c;
+      }
+
+      .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #e0e0e0;
+      }
+
+      /* Slide List & Preview */
+      .slide-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+        padding: 10px;
+      }
+
+      .slide-item {
+        padding: 10px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .slide-item:last-child {
+        border-bottom: none;
+      }
+
+      .slide-preview {
+        width: 100%;
+        height: 400px;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        overflow: hidden;
+      }
+
+      .preview-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        /* Center and scale down content for 16:9 preview within 400px height */
+        transform: scale(
+          0.65
+        ); /* Adjust scale factor as needed for your slide size (1280x720) */
+        transform-origin: top left;
+        /* Ensure the preview maintains 16:9 aspect ratio */
+        width: 153.84%; /* 100% / 0.65 */
+        height: 153.84%; /* 100% / 0.65 */
+      }
+
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      /* Empty State */
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #777;
+      }
+
+      .empty-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        color: #e0e0e0;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* ===================================== */
+      /* Fullscreen Presentation View */
+      /* ===================================== */
+
+      .presentation-view {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        z-index: 1000;
+        display: none;
+        cursor: none;
+      }
+
+      /* The slide frame inside presentation view (Cleaned up) */
+      .slide-frame {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        min-width: 100%;
+        min-height: 100%;
+        width: 100vw;
+        height: 100vh;
+        border: none;
+        transform: translate(-50%, -50%);
+        object-fit: contain; /* Important: ensures the 1280x720 content scales without cropping */
+        background-color: black;
+        /* Transition removed, content updates instantly */
+        transition: none;
+      }
+
+      /* Presentation Controls */
+      .presentation-controls,
+      .exit-btn {
+        position: absolute;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        pointer-events: auto;
+      }
+
+      .presentation-controls {
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 30px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        z-index: 1010;
+      }
+
+      .exit-btn {
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1010;
+      }
+
+      /* Hiding state for controls */
+      .hide-controls .presentation-controls,
+      .hide-controls .exit-btn {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Re-enable cursor when controls are visible */
+      .presentation-view:not(.hide-controls) {
+        cursor: default;
+      }
+
+      .presentation-controls button {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 50%;
+        transition: background 0.3s;
+      }
+
+      .presentation-controls button:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .slide-counter {
+        color: white;
+        font-size: 16px;
+        margin: 0 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img
+          height="50px"
+          width="50px"
+          src="https://loop-lime.vercel.app/icons/Loop-logo.png"
+          alt=""
+          style="margin-right: 10px"
+        />
+        <h1>Loop Presentation</h1>
+      </header>
+
+      <div class="main-content">
+        <div class="upload-section">
+          <h2 class="section-title">Upload Slides</h2>
+
+          <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">
+              <i class="material-icons">cloud_upload</i>
+            </div>
+            <p class="upload-text">
+              Drag and drop your HTML files here or click to browse
+            </p>
+            <input
+              type="file"
+              id="fileInput"
+              accept=".html"
+              multiple
+              style="display: none"
+            />
+            <button
+              class="btn"
+              onclick="document.getElementById('fileInput').click()"
+            >
+              <i class="material-icons">folder_open</i> Select Files
+            </button>
+          </div>
+
+          <div id="slideListContainer">
+            <h3>Uploaded Slides</h3>
+            <div class="slide-list" id="slideList">
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <i class="material-icons">description</i>
+                </div>
+                <p>No slides uploaded yet</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button class="btn btn-secondary" id="clearAllBtn">
+              <i class="material-icons">delete_sweep</i> Clear All
+            </button>
+            <button class="btn" id="startPresentationBtn" disabled>
+              <i class="material-icons">play_arrow</i> Start Presentation
+            </button>
+          </div>
+        </div>
+
+        <div class="presentation-section">
+          <h2 class="section-title">Slide Preview</h2>
+
+          <div class="slide-preview">
+            <iframe
+              class="preview-frame"
+              id="previewFrame"
+              src="about:blank"
+            ></iframe>
+          </div>
+
+          <div class="controls">
+            <button class="btn btn-secondary" id="prevSlideBtn" disabled>
+              <i class="material-icons">navigate_before</i> Previous
+            </button>
+            <span id="slideCounter">0/0</span>
+            <button class="btn btn-secondary" id="nextSlideBtn" disabled>
+              Next <i class="material-icons">navigate_next</i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="presentation-view hide-controls" id="presentationView">
+      <button class="exit-btn" id="exitPresentationBtn" title="Exit (Esc)">
+        <i class="material-icons">close</i>
+      </button>
+
+      <iframe class="slide-frame" id="slideFrame" src="about:blank"></iframe>
+
+      <div class="presentation-controls">
+        <button id="presentationPrevBtn" title="Previous Slide (Left Arrow)">
+          <i class="material-icons">navigate_before</i>
+        </button>
+        <span class="slide-counter" id="presentationCounter">1/1</span>
+        <button id="presentationNextBtn" title="Next Slide (Right Arrow/Space)">
+          <i class="material-icons">navigate_next</i>
+        </button>
+        <button id="fullscreenBtn" title="Toggle Fullscreen">
+          <i class="material-icons">fullscreen</i>
+        </button>
+      </div>
+    </div>
+    <script>
+      // Global variables
+      let slides = [];
+      let currentSlideIndex = 0;
+      let controlHideTimer = null;
+      const HIDE_DELAY_MS = 3000;
+
+      // DOM elements
+      const fileInput = document.getElementById("fileInput");
+      const uploadArea = document.getElementById("uploadArea");
+      const slideList = document.getElementById("slideList");
+      const previewFrame = document.getElementById("previewFrame");
+      const slideCounter = document.getElementById("slideCounter");
+      const prevSlideBtn = document.getElementById("prevSlideBtn");
+      const nextSlideBtn = document.getElementById("nextSlideBtn");
+      const clearAllBtn = document.getElementById("clearAllBtn");
+      const startPresentationBtn = document.getElementById(
+        "startPresentationBtn"
+      );
+      const presentationView = document.getElementById("presentationView");
+      const slideFrame = document.getElementById("slideFrame");
+      const presentationCounter = document.getElementById(
+        "presentationCounter"
+      );
+      const presentationPrevBtn = document.getElementById(
+        "presentationPrevBtn"
+      );
+      const presentationNextBtn = document.getElementById(
+        "presentationNextBtn"
+      );
+      const exitPresentationBtn = document.getElementById(
+        "exitPresentationBtn"
+      );
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+      // --- Control Visibility Functions ---
+      function hideControls() {
+        if (
+          presentationView.style.display === "block" &&
+          document.fullscreenElement
+        ) {
+          presentationView.classList.add("hide-controls");
+        }
+      }
+
+      function showControls() {
+        presentationView.classList.remove("hide-controls");
+        resetHideTimer();
+      }
+
+      function resetHideTimer() {
+        if (controlHideTimer) {
+          clearTimeout(controlHideTimer);
+        }
+        if (
+          presentationView.style.display === "block" &&
+          document.fullscreenElement
+        ) {
+          controlHideTimer = setTimeout(hideControls, HIDE_DELAY_MS);
+        }
+      }
+
+      // --- Initialization & Event Listeners ---
+
+      fileInput.addEventListener("change", handleFileUpload);
+      uploadArea.addEventListener("dragover", handleDragOver);
+      uploadArea.addEventListener("drop", handleDrop);
+      prevSlideBtn.addEventListener("click", () =>
+        showSlide(currentSlideIndex - 1, "prev")
+      );
+      nextSlideBtn.addEventListener("click", () =>
+        showSlide(currentSlideIndex + 1, "next")
+      );
+      clearAllBtn.addEventListener("click", clearAllSlides);
+      startPresentationBtn.addEventListener("click", startPresentation);
+      exitPresentationBtn.addEventListener("click", exitPresentation);
+      fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+      presentationView.addEventListener("mousemove", showControls);
+      document.addEventListener("fullscreenchange", () => {
+        if (document.fullscreenElement) {
+          resetHideTimer();
+        } else {
+          if (controlHideTimer) clearTimeout(controlHideTimer);
+          presentationView.classList.remove("hide-controls");
+        }
+      });
+
+      presentationPrevBtn.addEventListener("click", () => {
+        showSlide(currentSlideIndex - 1, "prev");
+        resetHideTimer();
+      });
+      presentationNextBtn.addEventListener("click", () => {
+        showSlide(currentSlideIndex + 1, "next");
+        resetHideTimer();
+      });
+
+      document.addEventListener("keydown", handleKeyPress);
+
+      // --- Core Slide Handling Functions ---
+
+      function handleFileUpload(event) {
+        const files = event.target.files;
+        processFiles(files);
+        fileInput.value = ""; // Reset input
+      }
+
+      function handleDragOver(event) {
+        event.preventDefault();
+        uploadArea.style.backgroundColor = "#f0f8ff";
+        uploadArea.style.borderColor = "#1976d2";
+      }
+
+      function handleDrop(event) {
+        event.preventDefault();
+        uploadArea.style.backgroundColor = "";
+        uploadArea.style.borderColor = "#64B5F6";
+
+        const files = event.dataTransfer.files;
+        processFiles(files);
+      }
+
+      function processFiles(files) {
+        let filesProcessed = false;
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          if (file.type === "text/html" || file.name.endsWith(".html")) {
+            filesProcessed = true;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const slideContent = e.target.result;
+              addSlide(file.name, slideContent);
+            };
+            reader.readAsText(file);
+          }
+        }
+        if (filesProcessed) {
+          updateControls();
+        }
+      }
+
+      function addSlide(name, content) {
+        const slide = {
+          id: Date.now() + Math.random(),
+          name: name,
+          content: content,
+        };
+
+        slides.push(slide);
+        updateSlideList();
+
+        if (slides.length === 1) {
+          currentSlideIndex = 0;
+          showSlide(currentSlideIndex, "init");
+        }
+      }
+
+      function updateSlideList() {
+        if (slides.length === 0) {
+          slideList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="material-icons">description</i>
+                        </div>
+                        <p>No slides uploaded yet</p>
+                    </div>
+                `;
+          return;
+        }
+
+        slideList.innerHTML = "";
+        slides.forEach((slide, index) => {
+          const slideItem = document.createElement("div");
+          slideItem.className = "slide-item";
+          slideItem.innerHTML = `
+                    <span>${slide.name}</span>
+                    <div>
+                        <button class="btn btn-secondary" onclick="removeSlide(${index})">
+                            <i class="material-icons">delete</i>
+                        </button>
+                        <button class="btn" onclick="showSlide(${index}, 'init')">
+                            <i class="material-icons">visibility</i>
+                        </button>
+                    </div>
+                `;
+          slideList.appendChild(slideItem);
+        });
+      }
+
+      function removeSlide(index) {
+        slides.splice(index, 1);
+
+        if (slides.length === 0) {
+          currentSlideIndex = 0;
+          previewFrame.src = "about:blank";
+        } else if (
+          currentSlideIndex > 0 &&
+          currentSlideIndex >= slides.length
+        ) {
+          currentSlideIndex = slides.length - 1;
+          showSlide(currentSlideIndex, "init");
+        } else if (currentSlideIndex === index && slides.length > 0) {
+          showSlide(currentSlideIndex, "init");
+        }
+
+        updateSlideList();
+        updateControls();
+      }
+
+      function clearAllSlides() {
+        if (slides.length === 0) return;
+
+        if (confirm("Are you sure you want to remove all slides?")) {
+          slides = [];
+          currentSlideIndex = 0;
+          previewFrame.src = "about:blank";
+          updateSlideList();
+          updateControls();
+        }
+      }
+
+      /**
+       * Loads the slide content into the preview or presentation frame.
+       * NOTE: Removed all transition logic per user request.
+       * @param {number} index - The index of the slide to load.
+       * @param {'next'|'prev'|'init'} direction - Direction (unused for immediate load).
+       */
+      function showSlide(index, direction = "init") {
+        if (slides.length === 0 || index < 0 || index >= slides.length) return;
+
+        currentSlideIndex = index;
+        const slide = slides[index];
+        const isPresentation = presentationView.style.display === "block";
+
+        const targetFrame = isPresentation ? slideFrame : previewFrame;
+
+        // 1. Create a blob URL for the slide content
+        const blob = new Blob([slide.content], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+
+        // 2. Immediately load the new content (no animation)
+        targetFrame.src = url;
+
+        // 3. Update counters and controls
+        slideCounter.textContent = `${index + 1}/${slides.length}`;
+        presentationCounter.textContent = `${index + 1}/${slides.length}`;
+        updateControls();
+      }
+
+      function updateControls() {
+        const hasSlides = slides.length > 0;
+        const isFirst = currentSlideIndex === 0;
+        const isLast = currentSlideIndex === slides.length - 1;
+
+        // Desktop Controls
+        prevSlideBtn.disabled = !hasSlides || isFirst;
+        nextSlideBtn.disabled = !hasSlides || isLast;
+        startPresentationBtn.disabled = !hasSlides;
+
+        // Presentation Controls
+        presentationPrevBtn.disabled = !hasSlides || isFirst;
+        presentationNextBtn.disabled = !hasSlides || isLast;
+      }
+
+      function startPresentation() {
+        if (slides.length === 0) return;
+
+        presentationView.style.display = "block";
+        showSlide(currentSlideIndex, "init");
+
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        }
+
+        resetHideTimer();
+      }
+
+      function exitPresentation() {
+        presentationView.style.display = "none";
+
+        if (controlHideTimer) clearTimeout(controlHideTimer);
+
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+
+      function toggleFullscreen() {
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          }
+        } else {
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          }
+        }
+      }
+
+      function handleKeyPress(event) {
+        if (
+          event.target.tagName === "INPUT" ||
+          event.target.tagName === "TEXTAREA"
+        ) {
+          return;
+        }
+
+        const inPresentation = presentationView.style.display === "block";
+
+        switch (event.key) {
+          case "ArrowLeft":
+            event.preventDefault();
+            if (currentSlideIndex > 0) {
+              showSlide(currentSlideIndex - 1, "prev");
+            }
+            if (inPresentation) resetHideTimer();
+            break;
+
+          case "ArrowRight":
+          case " ":
+            event.preventDefault();
+            if (currentSlideIndex < slides.length - 1) {
+              showSlide(currentSlideIndex + 1, "next");
+            }
+            if (inPresentation) resetHideTimer();
+            break;
+
+          case "Escape":
+            if (document.fullscreenElement) {
+              document.exitFullscreen();
+            }
+            if (inPresentation) {
+              exitPresentation();
+            }
+            break;
+
+          case "F5":
+            event.preventDefault();
+            if (!inPresentation) {
+              startPresentation();
+            }
+            break;
+
+          case "f":
+          case "F":
+            if (inPresentation) {
+              toggleFullscreen();
+            }
+            break;
+        }
+      }
+
+      // Initialize
+      updateSlideList();
+      updateControls();
+    </script>
+  </body>
+</html>
